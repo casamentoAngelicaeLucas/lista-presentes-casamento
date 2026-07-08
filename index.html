@@ -9,15 +9,17 @@
     body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; color: #333; }
     header { background: #d46a92; color: white; padding: 40px 20px; text-align: center; border-radius: 10px; margin-bottom: 30px; }
     h1 { margin: 0; font-size: 28px; }
-    .grid-presentes { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
+    .grid-presentes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
     .card-presente { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
     .card-presente img { max-width: 100%; height: 180px; object-fit: contain; border-radius: 5px; margin-bottom: 15px; }
     .nome-presente { font-size: 18px; font-weight: bold; margin: 10px 0; }
-    .descricao-presente { font-size: 14px; color: #666; margin-bottom: 10px; height: 40px; overflow: hidden; }
-    .valor-presente { font-size: 20px; color: #d46a92; font-weight: bold; margin-bottom: 15px; }
-    .btn-reservar { background: #d46a92; color: white; border: none; padding: 10px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+    .descricao-presente { font-size: 14px; color: #666; margin-bottom: 10px; line-height: 1.4; min-height: 45px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .valor-presente { font-size: 20px; color: #d46a92; font-weight: bold; margin: 15px 0; }
+    .btn-link-loja { background: #f0f0f0; color: #555; border: 1px solid #ccc; padding: 8px; width: 100%; border-radius: 5px; font-weight: normal; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 10px; box-sizing: border-box; }
+    .btn-link-loja:hover { background: #e5e5e5; color: #333; }
+    .btn-reservar { background: #d46a92; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-sizing: border-box; }
     .btn-reservar:hover { background: #b55376; }
-    .status-reservado { color: #777; font-weight: bold; padding: 10px; background: #eee; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .status-reservado { color: #777; font-weight: bold; padding: 12px; background: #eee; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; }
   </style>
 </head>
 <body>
@@ -38,6 +40,24 @@
       global: { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     });
 
+    // Função inteligente para separar o texto puro do link de internet
+    function separarTextoELink(textoCompleto) {
+      if (!textoCompleto) return { texto: "", link: "" };
+      
+      // Procura por qualquer link que comece com http ou https
+      const regexLink = /(https?:\/\/[^\s]+)/g;
+      const linksEncontrados = textoCompleto.match(regexLink);
+      
+      if (linksEncontrados && linksEncontrados.length > 0) {
+        const linkExtraido = linksEncontrados[0];
+        // Remove o link do texto original para limpar a descrição
+        const textoLimpo = textoCompleto.replace(linkExtraido, "").trim();
+        return { texto: textoLimpo, link: linkExtraido };
+      }
+      
+      return { texto: textoCompleto, link: "" };
+    }
+
     async function carregarPresentes() {
       const { data: produtos, error } = await _supabase
         .from('presentes')
@@ -56,12 +76,19 @@
         const card = document.createElement("div");
         card.className = "card-presente";
 
-        // Verifica se o item está reservado de acordo com o seu banco (TRUE ou true)
         const isReservado = p.reservado === true || p.reservado === 'TRUE';
+        
+        // Separa a descrição do link gigante
+        const dadosDescricao = separarTextoELink(p.descrição || p.descricao || '');
+
+        // Cria o botão de link da loja apenas se existir um link cadastrado
+        let botaoLinkLoja = "";
+        if (dadosDescricao.link) {
+          botaoLinkLoja = `<a href="${dadosDescricao.link}" target="_blank" class="btn-link-loja">🔗 Ver Sugestão de Loja</a>`;
+        }
 
         let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">🎁 Escolher Presente</button>`;
         
-        // PRIVACIDADE MÁXIMA: Se estiver reservado, mostra apenas o aviso, SEM o nome de quem escolheu!
         if (isReservado) {
           acaoBotao = `<div class="status-reservado">🔴 Já Escolhido</div>`;
         }
@@ -70,7 +97,8 @@
           <div>
             <img src="${p.imagem || 'https://via.placeholder.com/150'}" alt="${p.nome}">
             <div class="nome-presente">${p.nome}</div>
-            <div class="descricao-presente">${p.descrição || p.descricao || ''}</div>
+            <div class="descricao-presente">${dadosDescricao.texto || 'Sem descrição.'}</div>
+            ${botaoLinkLoja}
             <div class="valor-presente">R$ ${Number(p.valor).toFixed(2).replace('.', ',')}</div>
           </div>
           ${acaoBotao}
@@ -87,7 +115,6 @@
         return;
       }
 
-      // Atualiza o banco nas colunas certas capturadas no print
       const { error } = await _supabase
         .from('presentes')
         .update({
@@ -105,7 +132,6 @@
       }
     }
 
-    // Inicializa a lista ao abrir a página
     carregarPresentes();
   </script>
 </body>
