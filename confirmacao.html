@@ -32,8 +32,8 @@
     </select>
 
     <div class="radio-group">
-      <label><input type="radio" name="presenca" value="Sim! Estarei lá com vocês ❤️" checked> Sim! Estarei lá com vocês ❤️</label>
-      <label><input type="radio" name="presenca" value="Não poderei ir"> Não poderei ir, mas desejo toda a felicidade do mundo ✨</label>
+      <label><input type="radio" name="presenca" value="confirmado" checked> Sim! Estarei lá com vocês ❤️</label>
+      <label><input type="radio" name="presenca" value="recusado"> Não poderei ir, mas desejo toda a felicidade do mundo ✨</label>
     </div>
 
     <button onclick="enviarResposta()">Enviar Resposta</button>
@@ -53,9 +53,11 @@
     });
 
     async function carregarListaPublica() {
+      // Traz apenas quem ainda não respondeu (onde 'status_confirmacao' é nulo ou vazio)
       const { data: lista, error } = await _supabase
         .from('Convidados')
         .select('*')
+        .or('status_confirmacao.is.null,status_confirmacao.eq.""')
         .order('nome', { ascending: true });
 
       if (error) {
@@ -68,7 +70,7 @@
       select.innerHTML = '<option value="">-- Clique aqui para escolher seu nome --</option>';
 
       if (!lista || lista.length === 0) {
-        select.innerHTML = '<option value="">Nenhum convidado localizado no banco.</option>';
+        select.innerHTML = '<option value="">Todos os convidados já responderam!</option>';
         return;
       }
 
@@ -82,18 +84,18 @@
 
     async function enviarResposta() {
       const idConvidado = document.getElementById("selectConvidados").value;
-      const textoResposta = document.querySelector('input[name="presenca"]:checked').value;
+      const valorPresenca = document.querySelector('input[name="presenca"]:checked').value;
 
       if (!idConvidado) {
         alert("Por favor, selecione o seu nome na lista antes de enviar.");
         return;
       }
 
+      // Atualiza usando os nomes exatos das colunas lidas pelo painel admin
       const { error } = await _supabase
         .from('Convidados')
         .update({ 
-          resposta: textoResposta,
-          respondido: true 
+          status_confirmacao: valorPresenca
         })
         .eq('id', idConvidado);
 
