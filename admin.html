@@ -3,20 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Painel dos Noivos</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
-
 body{
     font-family:Arial,sans-serif;
     background:#f6f6f6;
     margin:0;
     padding:20px;
 }
-
 .container{
     max-width:1000px;
     margin:auto;
@@ -25,14 +20,11 @@ body{
     border-radius:10px;
     box-shadow:0 0 10px rgba(0,0,0,.1);
 }
-
 h1,h2{
     color:#d46a92;
     text-align:center;
 }
-
 button{
-
     background:#d46a92;
     color:white;
     border:none;
@@ -41,256 +33,151 @@ button{
     cursor:pointer;
     display:block;
     margin:20px auto;
-
 }
-
 button:hover{
-
-background:#bf5d83;
-
+    background:#bf5d83;
 }
-
 table{
-
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-margin-bottom:40px;
-
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
+    margin-bottom:40px;
 }
-
 th,td{
-
-border:1px solid #ddd;
-padding:10px;
-
+    border:1px solid #ddd;
+    padding:10px;
 }
-
 th{
-
-background:#d46a92;
-color:white;
-
+    background:#d46a92;
+    color:white;
 }
-
 tr:nth-child(even){
-
-background:#fafafa;
-
+    background:#fafafa;
 }
-
 </style>
-
 </head>
-
 <body>
 
 <div class="container">
+    <h1>Painel de Controle do Casamento</h1>
+    <button onclick="carregarTudo()">Atualizar Listas</button>
 
-<h1>Painel de Controle do Casamento</h1>
+    <h2>Confirmação de Presença</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Resposta</th>
+            </tr>
+        </thead>
+        <tbody id="tbConvidados">
+            <tr><td colspan="2">Carregando...</td></tr>
+        </tbody>
+    </table>
 
-<button onclick="carregarTudo()">
-Atualizar Listas
-</button>
-
-<h2>Confirmação de Presença</h2>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Nome</th>
-
-<th>Resposta</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tbConvidados">
-
-<tr>
-
-<td colspan="2">
-Carregando...
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
-<h2>Presentes Reservados</h2>
-
-<table>
-
-<thead>
-
-<tr>
-
-<th>Presente</th>
-
-<th>Quem escolheu</th>
-
-</tr>
-
-</thead>
-
-<tbody id="tbPresentes">
-
-<tr>
-
-<td colspan="2">
-Carregando...
-</td>
-
-</tr>
-
-</tbody>
-
-</table>
-
+    <h2>Presentes Reservados</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Presente</th>
+                <th>Quem escolheu</th>
+            </tr>
+        </thead>
+        <tbody id="tbPresentes">
+            <tr><td colspan="2">Carregando...</td></tr>
+        </tbody>
+    </table>
 </div>
 
 <script>
-
-const supabase = window.supabase.createClient(
-
-"https://jncjiqyakzztfgzldshi.supabase.co",
-
-"sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB"
-
+// Inicialização corrigida e direta do cliente Supabase
+const supabaseClient = supabase.createClient(
+    "https://jncjiqyakzztfgzldshi.supabase.co",
+    "sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB"
 );
 
 async function carregarConvidados(){
+    const tabela = document.getElementById("tbConvidados");
+    tabela.innerHTML = "";
 
-const tabela=document.getElementById("tbConvidados");
+    const { data, error } = await supabaseClient
+        .from("convidados")
+        .select("*")
+        .order("nome");
 
-tabela.innerHTML="";
+    if(error){
+        tabela.innerHTML = `<tr><td colspan="2">Erro: ${error.message}</td></tr>`;
+        console.error(error);
+        return;
+    }
 
-const {data,error}=await supabase
+    if(!data || !data.length){
+        tabela.innerHTML = `<tr><td colspan="2">Nenhum convidado.</td></tr>`;
+        return;
+    }
 
-.from("convidados")
+    data.forEach(c => {
+        let resposta = "❌ Ainda não respondeu";
+        
+        // Ajuste para reconhecer tanto o valor lógico quanto o texto 'TRUE' do seu banco
+        if (c.respondido === true || c.respondido === 'TRUE') {
+            resposta = c.resposta || "✅ Confirmado";
+        }
 
-.select("*")
-
-.order("nome");
-
-if(error){
-
-tabela.innerHTML=`<tr><td colspan="2">${error.message}</td></tr>`;
-
-console.error(error);
-
-return;
-
-}
-
-if(!data.length){
-
-tabela.innerHTML=`<tr><td colspan="2">Nenhum convidado.</td></tr>`;
-
-return;
-
-}
-
-data.forEach(c=>{
-
-let resposta="Ainda não respondeu";
-
-if(c.respondido){
-
-resposta=c.resposta || "Confirmado";
-
-}
-
-tabela.innerHTML+=`
-
-<tr>
-
-<td>${c.nome}</td>
-
-<td>${resposta}</td>
-
-</tr>
-
-`;
-
-});
-
+        tabela.innerHTML += `
+            <tr>
+                <td><strong>${c.nome}</strong></td>
+                <td>${resposta}</td>
+            </tr>
+        `;
+    });
 }
 
 async function carregarPresentes(){
+    const tabela = document.getElementById("tbPresentes");
+    tabela.innerHTML = "";
 
-const tabela=document.getElementById("tbPresentes");
+    const { data, error } = await supabaseClient
+        .from("presentes")
+        .select("*")
+        .order("nome");
 
-tabela.innerHTML="";
+    if(error){
+        tabela.innerHTML = `<tr><td colspan="2">Erro: ${error.message}</td></tr>`;
+        console.error(error);
+        return;
+    }
 
-const {data,error}=await supabase
+    let encontrou = false;
 
-.from("presentes")
+    if (data) {
+        data.forEach(p => {
+            // Ajuste para validar corretamente se o item está reservado
+            if (p.reservado === true || p.reservado === 'TRUE' || p.reservado_por) {
+                encontrou = true;
+                tabela.innerHTML += `
+                    <tr>
+                        <td>${p.nome}</td>
+                        <td>🎁 ${p.reservado_por || "-"}</td>
+                    </tr>
+                `;
+            }
+        });
+    }
 
-.select("*")
-
-.order("nome");
-
-if(error){
-
-tabela.innerHTML=`<tr><td colspan="2">${error.message}</td></tr>`;
-
-console.error(error);
-
-return;
-
-}
-
-let encontrou=false;
-
-data.forEach(p=>{
-
-if(p.reservado){
-
-encontrou=true;
-
-tabela.innerHTML+=`
-
-<tr>
-
-<td>${p.nome}</td>
-
-<td>${p.reservado_por || "-"}</td>
-
-</tr>
-
-`;
-
-}
-
-});
-
-if(!encontrou){
-
-tabela.innerHTML=`<tr><td colspan="2">Nenhum presente reservado.</td></tr>`;
-
-}
-
+    if(!encontrou){
+        tabela.innerHTML = `<tr><td colspan="2">Nenhum presente reservado.</td></tr>`;
+    }
 }
 
 async function carregarTudo(){
-
-await carregarConvidados();
-
-await carregarPresentes();
-
+    await carregarConvidados();
+    await carregarPresentes();
 }
 
+// Executa automaticamente ao abrir a tela
 carregarTudo();
-
 </script>
 
 </body>
-
 </html>
