@@ -114,10 +114,10 @@
     // ⚠️ MUDE APENAS A LINHA ABAIXO: Apague o texto que está entre as aspas e cole a sua CHAVE que salvou no bloco de notas
     const SUPABASE_KEY = "sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB";
 
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
     async function carregarPresentes() {
-        const { data: presentes, error } = await supabase
+        const { data: presentes, error } = await supabaseClient
             .from('presentes')
             .select('*')
             .order('id', { ascending: true });
@@ -166,7 +166,7 @@
             return;
         }
 
-        const { error } = await supabase
+        const { error } = await supabaseClient
             .from('presentes')
             .update({ 
                 reservado: true, 
