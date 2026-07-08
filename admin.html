@@ -58,7 +58,7 @@
     });
 
     async function carregarDadosAdmin() {
-      // 1. CONVIDADOS
+      // 1. LEITURA DE CONVIDADOS
       const { data: convidados, error: errC } = await _supabase
         .from('convidados')
         .select('*')
@@ -81,10 +81,11 @@
         });
       }
 
-      // 2. PRESENTES
+      // 2. LEITURA DE PRESENTES
       const { data: presentes, error: errP } = await _supabase
         .from('presentes')
-        .select('*');
+        .select('*')
+        .order('nome', { ascending: true });
 
       const tbodyP = document.getElementById("tabelaPresentes");
       tbodyP.innerHTML = "";
@@ -92,17 +93,13 @@
       if (errP) {
         tbodyP.innerHTML = `<tr><td colspan="2">Erro: ${errP.message}</td></tr>`;
       } else if (!presentes || presentes.length === 0) {
-        tbodyP.innerHTML = "<tr><td colspan="2">Nenhum presente cadastrado no banco.</td></tr>";
+        tbodyP.innerHTML = "<tr><td colspan="2">Nenhum presente cadastrado.</td></tr>";
       } else {
         let encontrouPresente = false;
         presentes.forEach(p => {
-          // Varre as colunas possíveis de quem reservou
-          let quem = p.quem_escolheu || p.escolhido_por || p.reservado_por || p.nome_convidado || p.comprado_por;
-          let statusReservado = p.reservado === true || p.reservado === 'TRUE' || p.status === 'reservado' || quem;
-          
-          if (statusReservado && quem) {
+          if (p.reservado === true || p.reservado === 'TRUE' || p.reservado_por) {
             encontrouPresente = true;
-            tbodyP.innerHTML += `<tr><td>${p.nome || p.presente}</td><td>🎁 ${quem}</td></tr>`;
+            tbodyP.innerHTML += `<tr><td>${p.nome}</td><td>🎁 ${p.reservado_por || 'Anônimo'}</td></tr>`;
           }
         });
 
@@ -112,7 +109,6 @@
       }
     }
 
-    // Carrega automaticamente assim que abre a tela
     carregarDadosAdmin();
   </script>
 </body>
