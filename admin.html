@@ -3,21 +3,23 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Confirmações</title>
+  <title>Painel de Controle - Casamento</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 20px; color: #333; }
-    h2 { color: #d46a92; text-align: center; }
-    .login-container, .lista-container { max-width: 600px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.1); }
+    h2 { color: #d46a92; text-align: center; margin-top: 30px; }
+    .login-container, .lista-container { max-width: 700px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.1); }
     input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
     button { width: 100%; padding: 12px; background: #d46a92; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
     button:hover { background: #b55376; }
-    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 30px; }
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-    th { background-color: #f9f9f9; color: #d46a92; }
+    th { background-color: #f9f9f9; color: #d46a92; font-weight: bold; }
     .status-sim { color: green; font-weight: bold; }
     .status-nao { color: red; font-weight: bold; }
     .status-pendente { color: #777; font-style: italic; }
+    .item-reservado { color: #b55376; font-weight: bold; }
+    .item-disponivel { color: #777; font-style: italic; }
   </style>
 </head>
 <body>
@@ -25,25 +27,40 @@
   <!-- TELA DE LOGIN -->
   <div id="loginSection" class="login-container">
     <h2>Acesso Restrito</h2>
-    <p>Digite a senha para visualizar a lista completa:</p>
+    <p>Digite a senha para visualizar as listas completas:</p>
     <input type="password" id="senhaInput" placeholder="Senha">
     <button onclick="verificarSenha()">Entrar</button>
   </div>
 
-  <!-- TELA DA LISTA -->
+  <!-- PAINEL COM AS DUAS LISTAS -->
   <div id="listaSection" class="lista-container" style="display: none;">
+    
     <h2>Lista de Convidados e Presenças</h2>
     <table>
       <thead>
         <tr>
-          <th>Nome</th>
+          <th>Nome do Convidado</th>
           <th>Presença</th>
         </tr>
       </thead>
-      <tbody id="tabelaCorpo">
-        <!-- Os nomes vão aparecer aqui -->
+      <tbody id="tabelaCorpoConvidados">
+        <!-- Os nomes aparecem aqui -->
       </tbody>
     </table>
+
+    <h2>Lista de Presentes Escolhidos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Presente</th>
+          <th>Quem Escolheu</th>
+        </tr>
+      </thead>
+      <tbody id="tabelaCorpoPresentes">
+        <!-- Os presentes aparecem aqui -->
+      </tbody>
+    </table>
+
   </div>
 
   <script>
@@ -56,39 +73,54 @@
       if (senha === "angelicaelucas") {
         document.getElementById("loginSection").style.display = "none";
         document.getElementById("listaSection").style.display = "block";
-        carregarListaCompleta();
+        carregarPainelCompleto();
       } else {
         alert("Senha incorreta!");
       }
     }
 
-    async function carregarListaCompleta() {
-      const { data: convidados, error } = await _supabase
+    async function carregarPainelCompleto() {
+      // 1. Puxa os Convidados
+      const { data: convidados } = await _supabase
         .from('Convidados')
         .select('*')
         .order('nome', { ascending: true });
 
-      if (error) {
-        console.error("Erro ao carregar:", error);
-        return;
+      const tabelaConvidados = document.getElementById("tabelaCorpoConvidados");
+      tabelaConvidados.innerHTML = "";
+
+      if (convidados) {
+        convidados.forEach(c => {
+          const tr = document.createElement("tr");
+          let statusTexto = '<span class="status-pendente">Ainda não respondeu</span>';
+          if (c.confirmado === true) statusTexto = '<span class="status-sim">Confirmou</span>';
+          if (c.confirmado === false) statusTexto = '<span class="status-nao">Não vai</span>';
+          
+          tr.innerHTML = `<td>${c.nome}</td><td>${statusTexto}</td>`;
+          tabelaConvidados.appendChild(tr);
+        });
       }
 
-      const tabela = document.getElementById("tabelaCorpo");
-      tabela.innerHTML = "";
+      // 2. Puxa os Presentes (ajuste os nomes das colunas 'nome_presente' e 'escolhido_por' se forem diferentes na sua tabela)
+      const { data: presentes } = await _supabase
+        .from('Presentes')
+        .select('*')
+        .order('nome_presente', { ascending: true });
 
-      convidados.forEach(c => {
-        const tr = document.createElement("tr");
-        
-        let statusTexto = '<span class="status-pendente">Ainda não respondeu</span>';
-        if (c.confirmado === true) {
-          statusTexto = '<span class="status-sim">Confirmou</span>';
-        } else if (c.confirmado === false) {
-          statusTexto = '<span class="status-nao">Não vai</span>';
-        }
+      const tabelaPresentes = document.getElementById("tabelaCorpoPresentes");
+      tabelaPresentes.innerHTML = "";
 
-        tr.innerHTML = `<td>${c.nome}</td><td>${statusTexto}</td>`;
-        tabela.appendChild(tr);
-      });
+      if (presentes && presentes.length > 0) {
+        presentes.forEach(p => {
+          const tr = document.createElement("tr");
+          let quemEscolheu = p.escolhido_por ? `<span class="item-reservado">${p.escolhido_por}</span>` : '<span class="item-disponivel">Disponível</span>';
+          
+          tr.innerHTML = `<td>${p.nome_presente}</td><td>${quemEscolheu}</td>`;
+          tabelaPresentes.appendChild(tr);
+        });
+      } else {
+        tabelaPresentes.innerHTML = '<tr><td colspan="2" style="text-align:center;">Nenhum presente cadastrado ou erro ao carregar.</td></tr>';
+      }
     }
   </script>
 </body>
