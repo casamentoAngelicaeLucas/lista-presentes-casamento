@@ -1,120 +1,105 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Confirmação de Presença</title>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-<style>
-body{
-font-family:Arial,sans-serif;
-background:#f5f5f5;
-margin:0;
-}
-
-header{
-background:#d46a92;
-color:white;
-padding:30px;
-text-align:center;
-}
-
-.container{
-max-width:500px;
-margin:40px auto;
-background:white;
-padding:30px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,.15);
-}
-
-input[type=text]{
-width:100%;
-padding:12px;
-margin:15px 0;
-box-sizing:border-box;
-}
-
-button{
-width:100%;
-padding:15px;
-background:#d46a92;
-color:white;
-border:none;
-font-size:18px;
-cursor:pointer;
-}
-
-label{
-display:block;
-margin:12px 0;
-}
-</style>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Confirmação de Presença</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; }
+    header { background: #d46a92; color: white; padding: 30px; text-align: center; }
+    .container { max-width: 500px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.1); }
+    select, button { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+    button { background: #d46a92; color: white; border: none; cursor: pointer; font-weight: bold; }
+    button:hover { background: #b55376; }
+    .radio-group { margin: 15px 0; }
+    .radio-group label { margin-right: 20px; cursor: pointer; font-size: 16px; }
+  </style>
 </head>
 <body>
 
-<header>
-<h1>Confirmação de Presença</h1>
-<p>Angélica & Lucas</p>
-</header>
+  <header>
+    <h1>Confirmação de Presença</h1>
+  </header>
 
-<div class="container">
+  <div class="container">
+    <p>Selecione seu nome na lista abaixo para confirmar sua presença:</p>
+    
+    <select id="selectConvidados">
+      <option value="">Carregando lista de convidados...</option>
+    </select>
 
-<input id="nome" type="text" placeholder="Digite seu nome">
+    <div class="radio-group">
+      <label><input type="radio" name="presenca" value="sim" checked> Confirmo</label>
+      <label><input type="radio" name="presenca" value="nao"> Não vou</label>
+    </div>
 
-<label>
-<input type="radio" name="resposta" value="Confirmo" checked>
-Confirmo minha presença
-</label>
+    <button onclick="enviarResposta()">Enviar resposta</button>
+  </div>
 
-<label>
-<input type="radio" name="resposta" value="Não comparecerei">
-Não poderei comparecer
-</label>
+  <script>
+    const SUPABASE_URL = "https://jncjiqyakzztfgzldshi.supabase.co";
+    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuY2ppcXlha3p6dGZnemxkc2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU5NjQ2MzgsImV4cCI6MjAzMTU0MDYzOH0.6_f9pXn9Y_8_r4_z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-<button onclick="confirmar()">Enviar resposta</button>
+    // Carrega APENAS quem ainda NÃO respondeu (confirmado é NULL)
+    async function carregarConvidadosPendentes() {
+      const { data: convidados, error } = await _supabase
+        .from('Convidados')
+        .select('*')
+        .is('confirmado', null)
+        .order('nome', { ascending: true });
 
-</div>
+      if (error) {
+        console.error("Erro ao buscar convidados:", error);
+        return;
+      }
 
-<script>
+      const select = document.getElementById("selectConvidados");
+      select.innerHTML = '<option value="">-- Selecione seu nome --</option>';
 
-const SUPABASE_URL="https://jncjiqyakzztfgzldshi.supabase.co";
-const SUPABASE_KEY="sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB";
+      if (convidados.length === 0) {
+        select.innerHTML = '<option value="">Todos os convidados já responderam!</option>';
+        return;
+      }
 
-const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_KEY);
+      convidados.forEach(c => {
+        const option = document.createElement("option");
+        option.value = c.id;
+        option.textContent = c.nome;
+        select.appendChild(option);
+      });
+    }
 
-async function confirmar(){
+    async function enviarResposta() {
+      const idConvidado = document.getElementById("selectConvidados").value;
+      const resposta = document.querySelector('input[name="presenca"]:checked').value;
 
-const nome=document.getElementById("nome").value.trim();
+      if (!idConvidado) {
+        alert("Por favor, selecione o seu nome na lista.");
+        return;
+      }
 
-if(nome===""){
-alert("Digite seu nome.");
-return;
-}
+      const ehConfirmado = (resposta === "sim");
 
-const resposta=document.querySelector('input[name="resposta"]:checked').value;
+      // Salva a resposta no banco de dados
+      const { error } = await _supabase
+        .from('Convidados')
+        .update({ confirmado: ehConfirmado })
+        .eq('id', idConvidado);
 
-const {error}=await supabaseClient
-.from("Convidados")
-.insert([{nome:nome,resposta:resposta}]);
+      if (error) {
+        alert("Erro ao enviar resposta. Tente novamente.");
+        console.error(error);
+      } else {
+        alert("Resposta enviada com sucesso! Obrigado.");
+        // Atualiza a lista na tela para sumir com o nome imediatamente
+        carregarConvidadosPendentes();
+      }
+    }
 
-if(error){
-alert("Erro ao enviar.");
-alert(error.message);
-console.log(error);
-return;
-}
-
-alert("Resposta enviada com sucesso!");
-
-document.getElementById("nome").value="";
-
-}
-
-</script>
-
+    // Inicializa a lista ao abrir a página
+    carregarConvidadosPendentes();
+  </script>
 </body>
 </html>
