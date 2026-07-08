@@ -53,9 +53,9 @@
     });
 
     async function carregarListaPublica() {
-      // Traz apenas quem ainda não respondeu (onde 'status_confirmacao' é nulo ou vazio)
+      // Ajustado para 'convidados' em minúsculo
       const { data: lista, error } = await _supabase
-        .from('Convidados')
+        .from('convidados')
         .select('*')
         .or('status_confirmacao.is.null,status_confirmacao.eq.""')
         .order('nome', { ascending: true });
@@ -91,9 +91,9 @@
         return;
       }
 
-      // Atualiza usando os nomes exatos das colunas lidas pelo painel admin
+      // Ajustado para 'convidados' em minúsculo
       const { error } = await _supabase
-        .from('Convidados')
+        .from('convidados')
         .update({ 
           status_confirmacao: valorPresenca
         })
