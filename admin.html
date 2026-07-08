@@ -3,34 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Painel de Controle - Casamento</title>
+  <title>Painel do Administrador - Noivos</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 20px; color: #333; }
-    h2 { color: #d46a92; text-align: center; margin-top: 30px; }
-    .login-container, .lista-container { max-width: 700px; margin: 30px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.1); }
-    input[type="password"] { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box; }
-    button { width: 100%; padding: 12px; background: #d46a92; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
+    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; color: #333; }
+    .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.1); }
+    h1, h2 { color: #d46a92; text-align: center; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0 40px 0; }
+    th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+    th { background-color: #d46a92; color: white; }
+    tr:nth-child(even) { background-color: #f9f9f9; }
+    .login-box { max-width: 400px; margin: 100px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,.1); text-align: center; }
+    input, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; box-sizing: border-box; }
+    button { background: #d46a92; color: white; border: none; cursor: pointer; font-weight: bold; }
     button:hover { background: #b55376; }
-    table { width: 100%; border-collapse: collapse; margin-top: 15px; margin-bottom: 30px; }
-    th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
-    th { background-color: #f9f9f9; color: #d46a92; font-weight: bold; }
-    .status-sim { color: green; font-weight: bold; }
-    .status-nao { color: #777; font-style: italic; }
-    .item-reservado { color: #b55376; font-weight: bold; }
-    .item-disponivel { color: #777; font-style: italic; }
+    .logout-btn { background: #555; width: auto; float: right; padding: 8px 15px; font-size: 14px; margin: 0; }
   </style>
 </head>
 <body>
 
-  <div id="loginSection" class="login-container">
-    <h2>Acesso Restrito</h2>
-    <p>Digite a senha para visualizar as listas completas:</p>
-    <input type="password" id="senhaInput" placeholder="Senha">
-    <button onclick="verificarSenha()">Entrar</button>
+  <div id="loginArea" class="login-box">
+    <h2>Acesso Restrito aos Noivos</h2>
+    <input type="password" id="senhaAdmin" placeholder="Digite a senha do painel">
+    <button onclick="verificarLogin()">Entrar</button>
   </div>
 
-  <div id="listaSection" class="lista-container" style="display: none;">
+  <div id="painelArea" class="container" style="display: none;">
+    <button class="logout-btn" onclick="logout()">Sair do Painel</button>
+    <h1>Painel de Controle do Casamento</h1>
     
     <h2>Lista de Convidados e Presenças</h2>
     <table>
@@ -40,7 +40,9 @@
           <th>Presença / Resposta</th>
         </tr>
       </thead>
-      <tbody id="tabelaCorpoConvidados"></tbody>
+      <tbody id="tabelaConvidados">
+        <tr><td colspan="2">Carregando dados...</td></tr>
+      </tbody>
     </table>
 
     <h2>Lista de Presentes Escolhidos</h2>
@@ -51,58 +53,106 @@
           <th>Quem Escolheu</th>
         </tr>
       </thead>
-      <tbody id="tabelaCorpoPresentes"></tbody>
+      <tbody id="tabelaPresentes">
+        <tr><td colspan="2">Carregando dados...</td></tr>
+      </tbody>
     </table>
-
   </div>
 
   <script>
     const SUPABASE_URL = "https://jncjiqyakzztfgzldshi.supabase.co";
-    const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpuY2ppcXlha3p6dGZnemxkc2hpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MTU5NjQ2MzgsImV4cCI6MjAzMTU0MDYzOH0.6_f9pXn9Y_8_r4_z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z_Z"; 
-    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+    const SUPABASE_KEY = "sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB"; 
+    const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+      global: { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
+    });
 
-    function verificarSenha() {
-      const senha = document.getElementById("senhaInput").value;
-      if (senha === "angelicaelucas") {
-        document.getElementById("loginSection").style.display = "none";
-        document.getElementById("listaSection").style.display = "block";
-        carregarPainelCompleto();
+    // SISTEMA DE LOGIN COM MEMÓRIA (NÃO DESLOGA NO F5)
+    function verificarLogin() {
+      const senha = document.getElementById("senhaAdmin").value;
+      if (senha === "1234") { // SUBSTUIA "1234" PELA SUA SENHA REAL SE FOR DIFERENTE
+        localStorage.setItem("logado_casamento", "sim");
+        mostrarPainel();
       } else {
         alert("Senha incorreta!");
       }
     }
 
-    async function carregarPainelCompleto() {
-      // 1. Puxa os Convidados
-      const { data: convidados } = await _supabase.from('Convidados').select('*').order('nome', { ascending: true });
-      const tabelaConvidados = document.getElementById("tabelaCorpoConvidados");
-      tabelaConvidados.innerHTML = "";
-
-      if (convidados) {
-        convidados.forEach(c => {
-          const tr = document.createElement("tr");
-          let statusTexto = c.resposta ? `<span class="status-sim">${c.resposta}</span>` : '<span class="status-nao">Ainda não respondeu</span>';
-          tr.innerHTML = `<td>${c.nome}</td><td>${statusTexto}</td>`;
-          tabelaConvidados.appendChild(tr);
-        });
-      }
-
-      // 2. Puxa os Presentes (ajustado para a tabela 'presentes' e coluna 'nome')
-      const { data: presentes } = await _supabase.from('presentes').select('*').order('nome', { ascending: true });
-      const tabelaPresentes = document.getElementById("tabelaCorpoPresentes");
-      tabelaPresentes.innerHTML = "";
-
-      if (presentes && presentes.length > 0) {
-        presentes.forEach(p => {
-          const tr = document.createElement("tr");
-          let quemEscolheu = p.reservado_por ? `<span class="item-reservado">${p.reservado_por}</span>` : '<span class="item-disponivel">Disponível</span>';
-          tr.innerHTML = `<td>${p.nome}</td><td>${quemEscolheu}</td>`;
-          tabelaPresentes.appendChild(tr);
-        });
-      } else {
-        tabelaPresentes.innerHTML = '<tr><td colspan="2" style="text-align:center;">Nenhum presente encontrado.</td></tr>';
+    function checarSessao() {
+      if (localStorage.getItem("logado_casamento") === "sim") {
+        mostrarPainel();
       }
     }
+
+    function mostrarPainel() {
+      document.getElementById("loginArea").style.display = "none";
+      document.getElementById("painelArea").style.display = "block";
+      carregarDadosAdmin();
+    }
+
+    function logout() {
+      localStorage.removeItem("logado_casamento");
+      window.location.reload();
+    }
+
+    // CARREGAR OS DADOS DAS TABELAS MINÚSCULAS DO SUPABASE
+    async function carregarDadosAdmin() {
+      // 1. Puxa todos os convidados
+      const { data: convidados, error: errC } = await _supabase
+        .from('convidados')
+        .select('*')
+        .order('nome', { ascending: true });
+
+      const tbodyC = document.getElementById("tabelaConvidados");
+      tbodyC.innerHTML = "";
+
+      if (errC) {
+        tbodyC.innerHTML = `<tr><td colspan="2">Erro ao carregar: ${errC.message}</td></tr>`;
+      } else if (!convidados || convidados.length === 0) {
+        tbodyC.innerHTML = "<tr><td colspan="2">Nenhum convidado cadastrado.</td></tr>";
+      } else {
+        convidados.forEach(c => {
+          let statusText = "Ainda não respondeu";
+          if (c.respondido === true || c.respondido === 'TRUE') {
+            statusText = c.resposta || "Confirmado";
+          }
+          tbodyC.innerHTML += `<tr><td>${c.nome}</td><td>${statusText}</td></tr>`;
+        });
+      }
+
+      // 2. Puxa todos os presentes
+      const { data: presentes, error: errP } = await _supabase
+        .from('presentes')
+        .select('*');
+
+      const tbodyP = document.getElementById("tabelaPresentes");
+      tbodyP.innerHTML = "";
+
+      if (errP) {
+        tbodyP.innerHTML = `<tr><td colspan="2">Erro ao carregar: ${errP.message}</td></tr>`;
+      } else if (!presentes || presentes.length === 0) {
+        tbodyP.innerHTML = "<tr><td colspan="2">Nenhum presente cadastrado no banco.</td></tr>";
+      } else {
+        // Filtra os presentes que têm alguém que escolheu (coluna 'escolhido_por' ou 'quem_escolheu' ou 'reservado_por')
+        // Vamos varrer as colunas dinamicamente para achar quem reservou
+        let encontrouPresente = false;
+        presentes.forEach(p => {
+          let quem = p.quem_escolheu || p.escolhido_por || p.reservado_por || p.nome_convidado;
+          let estaReservado = p.reservado === true || p.reservated === true || p.reservado === 'TRUE' || quem;
+          
+          if (estaReservado && quem) {
+            encontrouPresente = true;
+            tbodyP.innerHTML += `<tr><td>${p.nome || p.presente}</td><td>${quem}</td></tr>`;
+          }
+        });
+
+        if (!encontrouPresente) {
+          tbodyP.innerHTML = "<tr><td colspan="2">Nenhum presente foi escolhido ou reservado ainda.</td></tr>";
+        }
+      }
+    }
+
+    // Executa ao abrir a página
+    checarSessao();
   </script>
 </body>
 </html>
