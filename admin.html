@@ -16,15 +16,13 @@
     th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
     th { background-color: #f9f9f9; color: #d46a92; font-weight: bold; }
     .status-sim { color: green; font-weight: bold; }
-    .status-nao { color: red; font-weight: bold; }
-    .status-pendente { color: #777; font-style: italic; }
+    .status-nao { color: #777; font-style: italic; }
     .item-reservado { color: #b55376; font-weight: bold; }
     .item-disponivel { color: #777; font-style: italic; }
   </style>
 </head>
 <body>
 
-  <!-- TELA DE LOGIN -->
   <div id="loginSection" class="login-container">
     <h2>Acesso Restrito</h2>
     <p>Digite a senha para visualizar as listas completas:</p>
@@ -32,7 +30,6 @@
     <button onclick="verificarSenha()">Entrar</button>
   </div>
 
-  <!-- PAINEL COM AS DUAS LISTAS -->
   <div id="listaSection" class="lista-container" style="display: none;">
     
     <h2>Lista de Convidados e Presenças</h2>
@@ -40,12 +37,10 @@
       <thead>
         <tr>
           <th>Nome do Convidado</th>
-          <th>Presença</th>
+          <th>Presença / Resposta</th>
         </tr>
       </thead>
-      <tbody id="tabelaCorpoConvidados">
-        <!-- Os nomes aparecem aqui -->
-      </tbody>
+      <tbody id="tabelaCorpoConvidados"></tbody>
     </table>
 
     <h2>Lista de Presentes Escolhidos</h2>
@@ -56,9 +51,7 @@
           <th>Quem Escolheu</th>
         </tr>
       </thead>
-      <tbody id="tabelaCorpoPresentes">
-        <!-- Os presentes aparecem aqui -->
-      </tbody>
+      <tbody id="tabelaCorpoPresentes"></tbody>
     </table>
 
   </div>
@@ -81,45 +74,33 @@
 
     async function carregarPainelCompleto() {
       // 1. Puxa os Convidados
-      const { data: convidados } = await _supabase
-        .from('Convidados')
-        .select('*')
-        .order('nome', { ascending: true });
-
+      const { data: convidados } = await _supabase.from('Convidados').select('*').order('nome', { ascending: true });
       const tabelaConvidados = document.getElementById("tabelaCorpoConvidados");
       tabelaConvidados.innerHTML = "";
 
       if (convidados) {
         convidados.forEach(c => {
           const tr = document.createElement("tr");
-          let statusTexto = '<span class="status-pendente">Ainda não respondeu</span>';
-          if (c.confirmado === true) statusTexto = '<span class="status-sim">Confirmou</span>';
-          if (c.confirmado === false) statusTexto = '<span class="status-nao">Não vai</span>';
-          
+          let statusTexto = c.resposta ? `<span class="status-sim">${c.resposta}</span>` : '<span class="status-nao">Ainda não respondeu</span>';
           tr.innerHTML = `<td>${c.nome}</td><td>${statusTexto}</td>`;
           tabelaConvidados.appendChild(tr);
         });
       }
 
-      // 2. Puxa os Presentes (ajuste os nomes das colunas 'nome_presente' e 'escolhido_por' se forem diferentes na sua tabela)
-      const { data: presentes } = await _supabase
-        .from('Presentes')
-        .select('*')
-        .order('nome_presente', { ascending: true });
-
+      // 2. Puxa os Presentes (ajustado para a tabela 'presentes' e coluna 'nome')
+      const { data: presentes } = await _supabase.from('presentes').select('*').order('nome', { ascending: true });
       const tabelaPresentes = document.getElementById("tabelaCorpoPresentes");
       tabelaPresentes.innerHTML = "";
 
       if (presentes && presentes.length > 0) {
         presentes.forEach(p => {
           const tr = document.createElement("tr");
-          let quemEscolheu = p.escolhido_por ? `<span class="item-reservado">${p.escolhido_por}</span>` : '<span class="item-disponivel">Disponível</span>';
-          
-          tr.innerHTML = `<td>${p.nome_presente}</td><td>${quemEscolheu}</td>`;
+          let quemEscolheu = p.reservado_por ? `<span class="item-reservado">${p.reservado_por}</span>` : '<span class="item-disponivel">Disponível</span>';
+          tr.innerHTML = `<td>${p.nome}</td><td>${quemEscolheu}</td>`;
           tabelaPresentes.appendChild(tr);
         });
       } else {
-        tabelaPresentes.innerHTML = '<tr><td colspan="2" style="text-align:center;">Nenhum presente cadastrado ou erro ao carregar.</td></tr>';
+        tabelaPresentes.innerHTML = '<tr><td colspan="2" style="text-align:center;">Nenhum presente encontrado.</td></tr>';
       }
     }
   </script>
