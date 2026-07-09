@@ -6,99 +6,108 @@
   <title>Confirmação de Presença</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #fdfaf7; margin: 0; padding: 20px; color: #4a3b32; }
-    .container { max-width: 600px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); border: 1px solid #f3ebe4; text-align: center; }
-    h1 { color: #c26d4c; font-family: 'Georgia', serif; margin-bottom: 10px; }
-    p { color: #7a6a60; font-size: 16px; line-height: 1.5; }
-    
-    /* Caixa de Recado Importante */
-    .alerta-organizacao { background: #fbeee6; color: #a45334; border: 1px dashed #c26d4c; padding: 15px; border-radius: 8px; margin: 20px 0; font-size: 14px; line-height: 1.4; text-align: left; display: flex; align-items: center; gap: 10px; }
-    
-    .campo-busca { margin: 25px 0; text-align: left; }
-    label { font-weight: bold; color: #4a3b32; display: block; margin-bottom: 8px; }
-    select { width: 100%; padding: 12px; border: 1px solid #eacfbf; border-radius: 5px; background: #fdfaf7; color: #4a3b32; font-size: 16px; cursor: pointer; }
-    select:focus { outline: none; border-color: #c26d4c; background: white; }
-    
-    .btn-confirmar { background: #c26d4c; color: white; border: none; padding: 14px 20px; width: 100%; border-radius: 5px; font-weight: bold; font-size: 16px; cursor: pointer; transition: background 0.3s; margin-top: 10px; }
-    .btn-confirmar:hover { background: #a45334; }
+    body { font-family: Arial, sans-serif; background: #fdfaf7; margin: 0; color: #4a3b32; }
+    header { background: #c26d4c; color: white; padding: 40px 20px; text-align: center; }
+    h1 { margin: 0; font-size: 26px; }
+    .container { max-width: 500px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(74,59,50,.1); box-sizing: border-box; border: 1px solid #f3ebe4; }
+    select, button { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #eacfbf; border-radius: 5px; font-size: 16px; box-sizing: border-box; background: #fdfaf7; color: #4a3b32; }
+    select { cursor: pointer; }
+    button { background: #c26d4c; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+    button:hover { background: #a45334; }
+    .radio-group { margin: 25px 0; text-align: left; display: flex; flex-direction: column; gap: 12px; padding-left: 10px; }
+    .radio-group label { cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; color: #4a3b32; }
+    .instrucao { font-size: 16px; color: #7a6a60; margin-bottom: 10px; text-align: center; line-height: 1.5; }
+    .aviso-organizacao { font-size: 14px; color: #a45334; font-style: italic; text-align: center; margin-bottom: 20px; line-height: 1.4; }
   </style>
 </head>
 <body>
 
-  <div class="container">
+  <header>
     <h1>Confirmação de Presença</h1>
-    <p>Sua presença é fundamental para tornar o nosso grande dia ainda mais especial! Por favor, selecione o seu nome abaixo para confirmar.</p>
+  </header>
 
-    <!-- O RECADINHO PARA O CONVIDADO NÃO SE ASSUSTAR -->
-    <div class="alerta-organizacao">
-      💡 <strong>Nota de organização:</strong> Assim que você clicar em confirmar, o seu nome sairá automaticamente desta lista pública. Não se assuste! Isso serve apenas para sabermos quem já confirmou e manter a lista organizada para os noivos.
+  <div class="container">
+    <p class="instrucao">Ficamos muito felizes em compartilhar este momento com você!<br>Por favor, selecione seu nome na lista abaixo para confirmar:</p>
+    
+    <!-- O recado que você pediu integrado de forma sutil no seu layout -->
+    <p class="aviso-organizacao">*Nota: Após confirmar, seu nome sairá desta lista automaticamente para fins de organização dos noivos.*</p>
+    
+    <select id="selectConvidados">
+      <option value="">Carregando lista de convidados...</option>
+    </select>
+
+    <div class="radio-group">
+      <label><input type="radio" name="presenca" value="Sim! Estarei lá com vocês ❤️" checked> Sim! Estarei lá com vocês ❤️</label>
+      <label><input type="radio" name="presenca" value="Não poderei ir"> Não poderei ir, mas desejo toda a felicidade do mundo ✨</label>
     </div>
 
-    <div class="campo-busca">
-      <label for="listaConvidados">Encontre seu nome na lista:</label>
-      <select id="listaConvidados">
-        <option value="">Carregando lista de convidados...</option>
-      </select>
-    </div>
-
-    <button class="btn-confirmar" onclick="confirmarPresenca()">✨ Confirmar Minha Presença</button>
+    <button onclick="enviarResposta()">Enviar Resposta</button>
   </div>
 
   <script>
     const SUPABASE_URL = "https://jncjiqyakzztfgzldshi.supabase.co";
     const SUPABASE_KEY = "sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB"; 
+
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       global: { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     });
 
-    async function carregarConvidados() {
-      // Puxa apenas quem NÃO confirmou ainda (presenca = FALSE ou NULL)
-      const { data: convidados, error } = await _supabase
+    async function carregarListaPublica() {
+      const { data: lista, error } = await _supabase
         .from('convidados')
         .select('*')
-        .or('presenca.eq.FALSE,presenca.is.null')
+        .or('respondido.eq.FALSE,respondido.is.null,respondido.eq.false')
         .order('nome', { ascending: true });
 
       if (error) {
-        console.error("Erro ao buscar convidados:", error);
+        console.error("Erro Supabase:", error);
+        document.getElementById("selectConvidados").innerHTML = '<option value="">Erro ao carregar lista</option>';
         return;
       }
 
-      const select = document.getElementById("listaConvidados");
-      select.innerHTML = '<option value="">-- Selecione o seu nome aqui --</option>';
+      const select = document.getElementById("selectConvidados");
+      select.innerHTML = '<option value="">-- Clique aqui para escolher seu nome --</option>';
 
-      convidados.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c.id;
-        opt.textContent = c.nome;
-        select.appendChild(opt);
+      if (!lista || lista.length === 0) {
+        select.innerHTML = '<option value="">Todos os convidados já responderam!</option>';
+        return;
+      }
+
+      lista.forEach(convidado => {
+        const option = document.createElement("option");
+        option.value = convidado.id;
+        option.textContent = convidado.nome;
+        select.appendChild(option);
       });
     }
 
-    async function confirmarPresenca() {
-      const select = document.getElementById("listaConvidados");
-      const idConvidado = select.value;
+    async function enviarResposta() {
+      const idConvidado = document.getElementById("selectConvidados").value;
+      const valorPresenca = document.querySelector('input[name="presenca"]:checked').value;
 
       if (!idConvidado) {
-        alert("Por favor, selecione o seu nome na lista antes de confirmar.");
+        alert("Por favor, selecione o seu nome na lista antes de enviar.");
         return;
       }
 
       const { error } = await _supabase
         .from('convidados')
-        .update({ presenca: 'TRUE' })
+        .update({ 
+          resposta: valorPresenca,
+          respondido: 'TRUE'
+        })
         .eq('id', idConvidado);
 
       if (error) {
-        alert("Houve um erro ao confirmar sua presença. Tente novamente.");
+        alert("Houve um erro ao salvar sua resposta. Tente novamente.");
         console.error(error);
       } else {
-        alert("Presença confirmada com sucesso! Mal podemos esperar para comemorar com você! ❤️");
-        carregarConvidados(); // Recarrega a lista e o nome some
+        alert("Sua resposta foi enviada com carinho! Muito obrigado.");
+        carregarListaPublica();
       }
     }
 
-    carregarConvidados();
+    carregarListaPublica();
   </script>
 </body>
 </html>
