@@ -6,9 +6,12 @@
   <title>Confirmação de Presença</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #fdfaf7; margin: 0; color: #4a3b32; }
-    header { background: #c26d4c; color: white; padding: 40px 20px; text-align: center; }
-    h1 { margin: 0; font-size: 26px; }
+    body { font-family: Arial, sans-serif; background: #fdfaf7; margin: 0; padding: 20px; color: #4a3b32; }
+    
+    /* Cabeçalho idêntico ao da lista de presentes */
+    header { background: #c26d4c; color: white; padding: 40px 20px; text-align: center; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(194, 109, 76, 0.15); }
+    h1 { margin: 0; font-size: 28px; }
+    
     .container { max-width: 500px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(74,59,50,.1); box-sizing: border-box; border: 1px solid #f3ebe4; }
     select, button { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #eacfbf; border-radius: 5px; font-size: 16px; box-sizing: border-box; background: #fdfaf7; color: #4a3b32; }
     select { cursor: pointer; }
@@ -23,7 +26,7 @@
 <body>
 
   <header>
-    <h1>Lista de Confirmação de Presença</h1>
+    <h1>Confirmação de Presença</h1>
   </header>
 
   <div class="container">
@@ -35,7 +38,7 @@
       <option value="">Carregando lista de convidados...</option>
     </select>
 
-    <!-- 3. Nota de Organização (Agora embaixo do nome) -->
+    <!-- 3. Nota de Organização embaixo do nome -->
     <p class="aviso-organizacao">*Nota: Após confirmar, seu nome sairá desta lista automaticamente para fins de organização dos noivos.*</p>
 
     <!-- 4. Opções de presença -->
