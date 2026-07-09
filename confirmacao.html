@@ -16,8 +16,8 @@
     button:hover { background: #a45334; }
     .radio-group { margin: 25px 0; text-align: left; display: flex; flex-direction: column; gap: 12px; padding-left: 10px; }
     .radio-group label { cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; color: #4a3b32; }
-    .instrucao { font-size: 16px; color: #7a6a60; margin-bottom: 10px; text-align: center; line-height: 1.5; }
-    .aviso-organizacao { font-size: 14px; color: #a45334; font-style: italic; text-align: center; margin-bottom: 20px; line-height: 1.4; }
+    .instrucao { font-size: 16px; color: #7a6a60; margin-bottom: 20px; text-align: center; line-height: 1.5; }
+    .aviso-organizacao { font-size: 14px; color: #a45334; font-style: italic; text-align: center; margin-top: 5px; margin-bottom: 25px; line-height: 1.4; }
   </style>
 </head>
 <body>
@@ -27,19 +27,24 @@
   </header>
 
   <div class="container">
+    <!-- 1. Instrução -->
     <p class="instrucao">Ficamos muito felizes em compartilhar este momento com você!<br>Por favor, selecione seu nome na lista abaixo para confirmar:</p>
     
-    <p class="aviso-organizacao">*Nota: Após confirmar, seu nome sairá desta lista automaticamente para fins de organização dos noivos.*</p>
-    
+    <!-- 2. Seleção do Nome -->
     <select id="selectConvidados">
       <option value="">Carregando lista de convidados...</option>
     </select>
 
+    <!-- 3. Nota de Organização (Agora embaixo do nome) -->
+    <p class="aviso-organizacao">*Nota: Após confirmar, seu nome sairá desta lista automaticamente para fins de organização dos noivos.*</p>
+
+    <!-- 4. Opções de presença -->
     <div class="radio-group">
       <label><input type="radio" name="presenca" value="Sim! Estarei lá com vocês ❤️" checked> Sim! Estarei lá com vocês ❤️</label>
       <label><input type="radio" name="presenca" value="Não poderei ir"> Não poderei ir, mas desejo toda a felicidade do mundo ✨</label>
     </div>
 
+    <!-- 5. Enviar Resposta -->
     <button onclick="enviarResposta()">Enviar Resposta</button>
   </div>
 
