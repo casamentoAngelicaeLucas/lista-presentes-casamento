@@ -6,20 +6,21 @@
   <title>Lista de Presentes</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 20px; color: #333; }
-    header { background: #d46a92; color: white; padding: 40px 20px; text-align: center; border-radius: 10px; margin-bottom: 30px; }
-    h1 { margin: 0; font-size: 28px; }
+    body { font-family: Arial, sans-serif; background: #fdfaf7; margin: 0; padding: 20px; color: #4a3b32; }
+    header { background: #c26d4c; color: white; padding: 40px 20px; text-align: center; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(194, 109, 76, 0.15); }
+    h1 { margin: 0; font-size: 28px; font-family: 'Georgia', serif; }
+    header p { margin: 10px 0 0 0; font-size: 16px; opacity: 0.9; }
     .grid-presentes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-    .card-presente { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; }
+    .card-presente { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #f3ebe4; }
     .card-presente img { max-width: 100%; height: 180px; object-fit: contain; border-radius: 5px; margin-bottom: 15px; }
-    .nome-presente { font-size: 18px; font-weight: bold; margin: 10px 0; }
-    .descricao-presente { font-size: 14px; color: #666; margin-bottom: 10px; line-height: 1.4; min-height: 45px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .valor-presente { font-size: 20px; color: #d46a92; font-weight: bold; margin: 15px 0; }
-    .btn-link-loja { background: #f0f0f0; color: #555; border: 1px solid #ccc; padding: 8px; width: 100%; border-radius: 5px; font-weight: normal; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 10px; box-sizing: border-box; }
-    .btn-link-loja:hover { background: #e5e5e5; color: #333; }
-    .btn-reservar { background: #d46a92; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-sizing: border-box; }
-    .btn-reservar:hover { background: #b55376; }
-    .status-reservado { color: #777; font-weight: bold; padding: 12px; background: #eee; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; }
+    .nome-presente { font-size: 18px; font-weight: bold; color: #4a3b32; margin: 10px 0; }
+    .descricao-presente { font-size: 14px; color: #7a6a60; margin-bottom: 10px; line-height: 1.4; min-height: 45px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+    .valor-presente { font-size: 20px; color: #c26d4c; font-weight: bold; margin: 15px 0; }
+    .btn-link-loja { background: #fdfaf7; color: #c26d4c; border: 1px solid #eacfbf; padding: 8px; width: 100%; border-radius: 5px; font-weight: normal; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 10px; box-sizing: border-box; transition: all 0.3s; }
+    .btn-link-loja:hover { background: #fbeee6; color: #a45334; border-color: #c26d4c; }
+    .btn-reservar { background: #c26d4c; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-sizing: border-box; font-size: 15px; }
+    .btn-reservar:hover { background: #a45334; }
+    .status-reservado { color: #8a7a70; font-weight: bold; padding: 12px; background: #f0e6df; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 15px; }
   </style>
 </head>
 <body>
@@ -40,21 +41,15 @@
       global: { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     });
 
-    // Função inteligente para separar o texto puro do link de internet
     function separarTextoELink(textoCompleto) {
       if (!textoCompleto) return { texto: "", link: "" };
-      
-      // Procura por qualquer link que comece com http ou https
       const regexLink = /(https?:\/\/[^\s]+)/g;
       const linksEncontrados = textoCompleto.match(regexLink);
-      
       if (linksEncontrados && linksEncontrados.length > 0) {
         const linkExtraido = linksEncontrados[0];
-        // Remove o link do texto original para limpar a descrição
         const textoLimpo = textoCompleto.replace(linkExtraido, "").trim();
         return { texto: textoLimpo, link: linkExtraido };
       }
-      
       return { texto: textoCompleto, link: "" };
     }
 
@@ -77,20 +72,16 @@
         card.className = "card-presente";
 
         const isReservado = p.reservado === true || p.reservado === 'TRUE';
-        
-        // Separa a descrição do link gigante
         const dadosDescricao = separarTextoELink(p.descrição || p.descricao || '');
 
-        // Cria o botão de link da loja apenas se existir um link cadastrado
         let botaoLinkLoja = "";
         if (dadosDescricao.link) {
           botaoLinkLoja = `<a href="${dadosDescricao.link}" target="_blank" class="btn-link-loja">🔗 Ver Sugestão de Loja</a>`;
         }
 
         let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">🎁 Escolher Presente</button>`;
-        
         if (isReservado) {
-          acaoBotao = `<div class="status-reservado">🔴 Já Escolhido</div>`;
+          acaoBotao = `<div class="status-reservado">🤎 Já Escolhido</div>`;
         }
 
         card.innerHTML = `
@@ -109,7 +100,6 @@
 
     async function reservarItem(idItem, nomeItem) {
       const nomeConvidado = prompt(`Você escolheu: ${nomeItem}\n\nPor favor, digite o seu nome para confirmarmos aos noivos quem enviou:`);
-      
       if (!nomeConvidado || nomeConvidado.trim() === "") {
         alert("A reserva não foi concluída. É necessário informar o seu nome.");
         return;
@@ -117,10 +107,7 @@
 
       const { error } = await _supabase
         .from('presentes')
-        .update({
-          reservado: 'TRUE',
-          reservado_por: nomeConvidado.trim()
-        })
+        .update({ reservado: 'TRUE', reservado_por: nomeConvidado.trim() })
         .eq('id', idItem);
 
       if (error) {
