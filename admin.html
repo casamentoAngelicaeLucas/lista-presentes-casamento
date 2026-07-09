@@ -10,23 +10,50 @@ body{
     font-family:Arial,sans-serif;
     background:#fdfaf7; /* Fundo suave da paleta */
     margin:0;
-    padding:20px;
+    padding:15px;
     color:#4a3b32; /* Texto escuro elegante */
 }
 .container{
     max-width:1000px;
     margin:auto;
     background:#fff;
-    padding:25px;
+    padding:20px 15px;
     border-radius:10px;
     box-shadow:0 0 10px rgba(74,59,50,.1);
     border: 1px solid #f3ebe4;
 }
-h1,h2{
+
+/* Ajuste nos títulos para caberem em uma única linha no celular */
+h1, h2{
     color:#c26d4c; /* Títulos em Terracota */
     text-align:center;
-    font-family: 'Georgia', serif;
+    margin-left: auto;
+    margin-right: auto;
+    white-space: nowrap; /* Impede a quebra de linha */
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
+
+h1 {
+    font-size: 20px; /* Tamanho calibrado para telas pequenas */
+    margin-top: 10px;
+    margin-bottom: 5px;
+}
+
+h2 {
+    font-size: 18px; /* Tamanho calibrado para telas pequenas */
+    margin-top: 30px;
+    margin-bottom: 15px;
+}
+
+/* Ajustes finos adicionais para telas maiores (computador) */
+@media (min-width: 600px) {
+    h1 { font-size: 28px; }
+    h2 { font-size: 24px; }
+    body { padding: 20px; }
+    .container { padding: 25px; }
+}
+
 button{
     background:#c26d4c; /* Botão em Terracota */
     color:white;
@@ -64,7 +91,7 @@ tr:nth-child(even){
 <body>
 
 <div class="container">
-    <h1>Painel de Controle do Casamento</h1>
+    <h1>Painel de Controle dos Noivos</h1>
     <button onclick="carregarTudo()">Atualizar Listas</button>
 
     <h2>Confirmação de Presença</h2>
