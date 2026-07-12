@@ -72,7 +72,7 @@
         const card = document.createElement("div");
         card.className = "card-presente";
 
-        const isReservado = p.reservado === true || p.reservado === 'TRUE';
+        const isReservado = p.reservado === true || p.reservado === 'TRUE' || p.reservado_por;
         const dadosDescricao = separarTextoELink(p.descrição || p.descricao || '');
 
         let botaoLinkLoja = "";
