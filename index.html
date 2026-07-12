@@ -11,7 +11,7 @@
     h1 { margin: 0; font-size: 28px; font-family: 'Georgia', serif; }
     header p { margin: 15px 0 0 0; font-size: 16px; opacity: 0.95; line-height: 1.5; }
     
-    /* Estilo da nova seção horizontal dos padrinhos */
+    /* Seção exclusiva e fixa dos Padrinhos */
     .secao-padrinhos { max-width: 1200px; margin: 0 auto 40px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); border: 1px solid #eacfbf; }
     .titulo-padrinhos { font-size: 20px; font-family: 'Georgia', serif; color: #c26d4c; margin: 0 0 15px 0; text-align: left; font-weight: bold; }
     .carrossel-padrinhos { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; }
@@ -43,13 +43,45 @@
     <p>Selecione o presente para ficar indisponível para os outros convidados, assim a escolha será exclusiva sua.</p>
   </header>
 
-  <!-- Nova Seção Horizontal para os presentes dos Padrinhos -->
-  <div class="secao-padrinhos" id="secaoPadrinhos" style="display: none;">
+  <!-- CARROSSEL EXCLUSIVO DOS PADRINHOS (FIXO NO CÓDIGO) -->
+  <div class="secao-padrinhos">
     <div class="titulo-padrinhos">✨ Presentes Escolhidos pelos Padrinhos</div>
-    <div class="carrossel-padrinhos" id="listaPadrinhos">
+    <div class="carrossel-padrinhos">
+      
+      <!-- PRESENTE PADRINHO 1 -->
+      <div class="card-presente">
+        <div>
+          <img src="https://via.placeholder.com/150" alt="Geladeira">
+          <div class="nome-presente">Geladeira Frost Free</div>
+          <div class="valor-presente">R$ 2.999,00</div>
+        </div>
+        <div class="status-padrinho">❤️ Escolhido por um Padrinho</div>
+      </div>
+
+      <!-- PRESENTE PADRINHO 2 -->
+      <div class="card-presente">
+        <div>
+          <img src="https://via.placeholder.com/150" alt="Micro-ondas">
+          <div class="nome-presente">Forno Micro-ondas Inox</div>
+          <div class="valor-presente">R$ 650,00</div>
+        </div>
+        <div class="status-padrinho">❤️ Escolhido por um Padrinho</div>
+      </div>
+
+      <!-- PRESENTE PADRINHO 3 -->
+      <div class="card-presente">
+        <div>
+          <img src="https://via.placeholder.com/150" alt="Fogão">
+          <div class="nome-presente">Fogão 5 Bocas Automático</div>
+          <div class="valor-presente">R$ 1.200,00</div>
+        </div>
+        <div class="status-padrinho">❤️ Escolhido por um Padrinho</div>
+      </div>
+
     </div>
   </div>
 
+  <!-- GRADE DOS CONVIDADOS (VEM DO SUPABASE) -->
   <div class="grid-presentes" id="listaProdutos">
   </div>
 
@@ -84,12 +116,7 @@
       }
 
       const containerGeral = document.getElementById("listaProdutos");
-      const containerPadrinhos = document.getElementById("listaPadrinhos");
-      const divSecaoPadrinhos = document.getElementById("secaoPadrinhos");
-      
       containerGeral.innerHTML = "";
-      containerPadrinhos.innerHTML = "";
-      let temPadrinho = false;
 
       produtos.forEach(p => {
         const card = document.createElement("div");
@@ -98,23 +125,14 @@
         const isReservado = p.reservado === true || p.reservado === 'TRUE' || p.reservado_por;
         const dadosDescricao = separarTextoELink(p.descrição || p.descricao || '');
 
-        // Identifica inteligentemente se quem reservou é padrinho ou madrinha
-        const nomeQuemReservou = (p.reservado_por || "").toLowerCase();
-        const ehDePadrinho = nomeQuemReservou.includes("padrinho") || nomeQuemReservou.includes("madrinha");
-
         let botaoLinkLoja = "";
         if (dadosDescricao.link) {
           botaoLinkLoja = `<a href="${dadosDescricao.link}" target="_blank" class="btn-link-loja">🔗 Ver Sugestão de Loja</a>`;
         }
 
         let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">Escolho este 🎁</button>`;
-        
         if (isReservado) {
-          if (ehDePadrinho) {
-            acaoBotao = `<div class="status-padrinho">❤️ Escolhido por um Padrinho</div>`;
-          } else {
-            acaoBotao = `<div class="status-reservado">❤️ Já Escolhido</div>`;
-          }
+          acaoBotao = `<div class="status-reservado">❤️ Já Escolhido</div>`;
         }
 
         card.innerHTML = `
@@ -128,25 +146,12 @@
           ${acaoBotao}
         `;
 
-        // Se for presente de padrinho, joga no carrossel superior, senão vai para a lista normal
-        if (isReservado && ehDePadrinho) {
-          containerPadrinhos.appendChild(card);
-          temPadrinho = true;
-        } else {
-          containerGeral.appendChild(card);
-        }
+        containerGeral.appendChild(card);
       });
-
-      // Só exibe o bloco dos padrinhos se houver algum presente de padrinho reservado
-      if (temPadrinho) {
-        divSecaoPadrinhos.style.display = "block";
-      } else {
-        divSecaoPadrinhos.style.display = "none";
-      }
     }
 
     async function reservarItem(idItem, nomeItem) {
-      const nomeConvidado = prompt(`Você escolheu: ${nomeItem}\n\nPor favor, digite o seu nome para confirmarmos aos noivos quem enviou:\n(Se você for padrinho ou madrinha, escreva antes do seu nome. Ex: Padrinho Adriano)`);
+      const nomeConvidado = prompt(`Você escolheu: ${nomeItem}\n\nPor favor, digite o seu nome para confirmarmos aos noivos quem enviou:`);
       if (!nomeConvidado || nomeConvidado.trim() === "") {
         alert("A reserva não foi concluída. É necessário informar o seu nome.");
         return;
