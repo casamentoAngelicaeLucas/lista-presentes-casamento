@@ -86,6 +86,13 @@ th{
 tr:nth-child(even){
     background:#fdfaf7; /* Linhas alternadas no tom da paleta */
 }
+/* Estilo para a coluna de numeração ficar centralizada e discreta */
+.col-num {
+    text-align: center;
+    width: 50px;
+    font-weight: bold;
+    color: #a45334;
+}
 </style>
 </head>
 <body>
@@ -98,12 +105,13 @@ tr:nth-child(even){
     <table>
         <thead>
             <tr>
+                <th style="width: 50px;">Nº</th>
                 <th>Nome</th>
                 <th>Resposta</th>
             </tr>
         </thead>
         <tbody id="tbConvidados">
-            <tr><td colspan="2">Carregando...</td></tr>
+            <tr><td colspan="3">Carregando...</td></tr>
         </tbody>
     </table>
 
@@ -111,12 +119,13 @@ tr:nth-child(even){
     <table>
         <thead>
             <tr>
+                <th style="width: 50px;">Nº</th>
                 <th>Presente</th>
                 <th>Quem escolheu</th>
             </tr>
         </thead>
         <tbody id="tbPresentes">
-            <tr><td colspan="2">Carregando...</td></tr>
+            <tr><td colspan="3">Carregando...</td></tr>
         </tbody>
     </table>
 </div>
@@ -138,17 +147,18 @@ async function carregarConvidados(){
         .order("nome");
 
     if(error){
-        tabela.innerHTML = `<tr><td colspan="2">Erro: ${error.message}</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="3">Erro: ${error.message}</td></tr>`;
         console.error(error);
         return;
     }
 
     if(!data || !data.length){
-        tabela.innerHTML = `<tr><td colspan="2">Nenhum convidado.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="3">Nenhum convidado.</td></tr>`;
         return;
     }
 
-    data.forEach(c => {
+    // Adicionado índice (i) para fazer a contagem sequencial automática
+    data.forEach((c, i) => {
         let resposta = "❌ Ainda não respondeu";
         
         // Ajuste para reconhecer tanto o valor lógico quanto o texto 'TRUE' do seu banco
@@ -158,6 +168,7 @@ async function carregarConvidados(){
 
         tabela.innerHTML += `
             <tr>
+                <td class="col-num">${i + 1}</td>
                 <td><strong>${c.nome}</strong></td>
                 <td>${resposta}</td>
             </tr>
@@ -175,11 +186,12 @@ async function carregarPresentes(){
         .order("nome");
 
     if(error){
-        tabela.innerHTML = `<tr><td colspan="2">Erro: ${error.message}</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="3">Erro: ${error.message}</td></tr>`;
         console.error(error);
         return;
     }
 
+    let contadorPresentes = 1;
     let encontrou = false;
 
     if (data) {
@@ -189,16 +201,18 @@ async function carregarPresentes(){
                 encontrou = true;
                 tabela.innerHTML += `
                     <tr>
+                        <td class="col-num">${contadorPresentes}</td>
                         <td>${p.nome}</td>
                         <td>🎁 ${p.reservado_por || "-"}</td>
                     </tr>
                 `;
+                contadorPresentes++; // Aumenta o número para o próximo presente reservado
             }
         });
     }
 
     if(!encontrou){
-        tabela.innerHTML = `<tr><td colspan="2">Nenhum presente reservado.</td></tr>`;
+        tabela.innerHTML = `<tr><td colspan="3">Nenhum presente reservado.</td></tr>`;
     }
 }
 
