@@ -11,14 +11,14 @@
     h1 { margin: 0; font-size: 28px; font-family: 'Georgia', serif; }
     header p { margin: 15px 0 0 0; font-size: 16px; opacity: 0.95; line-height: 1.5; }
     
-    /* Seção exclusiva e fixa dos Padrinhos */
-    .secao-padrinhos { max-width: 1200px; margin: 0 auto 40px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); border: 1px solid #eacfbf; }
-    .titulo-padrinhos { font-size: 20px; font-family: 'Georgia', serif; color: #c26d4c; margin: 0 0 15px 0; text-align: left; font-weight: bold; }
-    .carrossel-padrinhos { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; }
-    .carrossel-padrinhos::-webkit-scrollbar { height: 8px; }
-    .carrossel-padrinhos::-webkit-scrollbar-thumb { background: #eacfbf; border-radius: 4px; }
-    .carrossel-padrinhos .card-presente { min-width: 250px; max-width: 250px; }
-    .carrossel-padrinhos .card-presente img { height: 130px; }
+    /* Seção horizontal para os itens já escolhidos */
+    .secao-escolhidos { max-width: 1200px; margin: 0 auto 40px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); border: 1px solid #eacfbf; }
+    .titulo-escolhidos { font-size: 20px; font-family: 'Georgia', serif; color: #c26d4c; margin: 0 0 15px 0; text-align: left; font-weight: bold; }
+    .carrossel-escolhidos { display: flex; gap: 20px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; }
+    .carrossel-escolhidos::-webkit-scrollbar { height: 8px; }
+    .carrossel-escolhidos::-webkit-scrollbar-thumb { background: #eacfbf; border-radius: 4px; }
+    .carrossel-escolhidos .card-presente { min-width: 250px; max-width: 250px; }
+    .carrossel-escolhidos .card-presente img { height: 130px; }
 
     .grid-presentes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
     .card-presente { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #f3ebe4; }
@@ -31,7 +31,6 @@
     .btn-reservar { background: #c26d4c; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-sizing: border-box; font-size: 15px; }
     .btn-reservar:hover { background: #a45334; }
     .status-reservado { color: #8a7a70; font-weight: bold; padding: 12px; background: #f0e6df; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 15px; }
-    .status-padrinho { color: #c26d4c; font-weight: bold; padding: 12px; background: #fdfaf7; border: 1px solid #eacfbf; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 14px; }
   </style>
 </head>
 <body>
@@ -43,45 +42,14 @@
     <p>Selecione o presente para ficar indisponível para os outros convidados, assim a escolha será exclusiva sua.</p>
   </header>
 
-  <!-- CARROSSEL EXCLUSIVO DOS PADRINHOS (FIXO NO CÓDIGO) -->
-  <div class="secao-padrinhos">
-    <div class="titulo-padrinhos">✨ Presentes Escolhidos pelos Padrinhos</div>
-    <div class="carrossel-padrinhos">
-      
-      <!-- PRESENTE PADRINHO 1 -->
-      <div class="card-presente">
-        <div>
-          <img src="https://via.placeholder.com/150" alt="Geladeira">
-          <div class="nome-presente">Geladeira Frost Free</div>
-          <div class="valor-presente">R$ 2.999,00</div>
-        </div>
-        <div class="status-padrinho">❤️ Escolhido por um Padrinho</div>
-      </div>
-
-      <!-- PRESENTE PADRINHO 2 -->
-      <div class="card-presente">
-        <div>
-          <img src="https://via.placeholder.com/150" alt="Micro-ondas">
-          <div class="nome-presente">Forno Micro-ondas Inox</div>
-          <div class="valor-presente">R$ 650,00</div>
-        </div>
-        <div class="status-padrinho">❤️ Escolhido por um Padrinho</div>
-      </div>
-
-      <!-- PRESENTE PADRINHO 3 -->
-      <div class="card-presente">
-        <div>
-          <img src="https://via.placeholder.com/150" alt="Fogão">
-          <div class="nome-presente">Fogão 5 Bocas Automático</div>
-          <div class="valor-presente">R$ 1.200,00</div>
-        </div>
-        <div class="status-padrinho">❤️ Escolhido por um Padrinho</div>
-      </div>
-
+  <!-- Seção Horizontal para os presentes já escolhidos -->
+  <div class="secao-escolhidos" id="secaoEscolhidos" style="display: none;">
+    <div class="titulo-escolhidos">✨ Presentes Já Escolhidos</div>
+    <div class="carrossel-escolhidos" id="listaEscolhidos">
     </div>
   </div>
 
-  <!-- GRADE DOS CONVIDADOS (VEM DO SUPABASE) -->
+  <!-- Grade vertical dos disponíveis -->
   <div class="grid-presentes" id="listaProdutos">
   </div>
 
@@ -116,7 +84,12 @@
       }
 
       const containerGeral = document.getElementById("listaProdutos");
+      const containerEscolhidos = document.getElementById("listaEscolhidos");
+      const divSecaoEscolhidos = document.getElementById("secaoEscolhidos");
+      
       containerGeral.innerHTML = "";
+      containerEscolhidos.innerHTML = "";
+      let temEscolhido = false;
 
       produtos.forEach(p => {
         const card = document.createElement("div");
@@ -146,8 +119,21 @@
           ${acaoBotao}
         `;
 
-        containerGeral.appendChild(card);
+        // Se estiver reservado, vai para o carrossel superior horizontal, senão fica na lista vertical
+        if (isReservado) {
+          containerEscolhidos.appendChild(card);
+          temEscolhido = true;
+        } else {
+          containerGeral.appendChild(card);
+        }
       });
+
+      // Só mostra o bloco horizontal se tiver pelo menos um item já escolhido
+      if (temEscolhido) {
+        divSecaoEscolhidos.style.display = "block";
+      } else {
+        divSecaoEscolhidos.style.display = "none";
+      }
     }
 
     async function reservarItem(idItem, nomeItem) {
