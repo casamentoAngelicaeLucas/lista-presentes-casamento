@@ -9,7 +9,7 @@
     body { font-family: Arial, sans-serif; background: #fdfaf7; margin: 0; padding: 20px; color: #4a3b32; }
     header { background: #c26d4c; color: white; padding: 40px 20px; text-align: center; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(194, 109, 76, 0.15); }
     h1 { margin: 0; font-size: 28px; font-family: 'Georgia', serif; }
-    header p { margin: 10px 0 0 0; font-size: 16px; opacity: 0.9; }
+    header p { margin: 15px 0 0 0; font-size: 16px; opacity: 0.95; line-height: 1.5; }
     .grid-presentes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
     .card-presente { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #f3ebe4; }
     .card-presente img { max-width: 100%; height: 180px; object-fit: contain; border-radius: 5px; margin-bottom: 15px; }
@@ -27,11 +27,13 @@
 
   <header>
     <h1>Lista de Presentes dos Noivos</h1>
-    <p>Escolha um presente para demonstrar todo o seu carinho!</p>
+    <p><strong>Escolha o seu presente e compre onde preferir!</strong></p>
+    <p>Deixamos apenas uma sugestão de loja para te ajudar.</p>
+    <p>Selecione o presente para ficar indisponível para os outros convidados, assim a escolha será exclusiva sua.</p>
   </header>
 
   <div class="grid-presentes" id="listaProdutos">
-    </div>
+  </div>
 
   <script>
     const SUPABASE_URL = "https://jncjiqyakzztfgzldshi.supabase.co";
@@ -78,12 +80,11 @@
           botaoLinkLoja = `<a href="${dadosDescricao.link}" target="_blank" class="btn-link-loja">🔗 Ver Sugestão de Loja</a>`;
         }
 
-        let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">🎁 Escolher Presente</button>`;
+        let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">Escolho este 🎁</button>`;
         if (isReservado) {
           acaoBotao = `<div class="status-reservado">❤️ Já Escolhido</div>`;
         }
 
-        // Alinhamento inteligente: só cria a tag de descrição se houver texto nela
         card.innerHTML = `
           <div>
             <img src="${p.imagem || 'https://via.placeholder.com/150'}" alt="${p.nome}">
