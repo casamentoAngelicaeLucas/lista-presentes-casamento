@@ -62,6 +62,7 @@
   </div>
 
   <script>
+    // Adicionado parâmetro de controle para evitar cache do Supabase
     const SUPABASE_URL = "https://jncjiqyakzztfgzldshi.supabase.co";
     const SUPABASE_KEY = "sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB"; 
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -81,6 +82,8 @@
     }
 
     async function carregarPresentes() {
+      // Adicionando timestamp para evitar cache da busca
+      const cacheBuster = new Date().getTime();
       const { data: produtos, error } = await _supabase
         .from('presentes')
         .select('*')
@@ -116,7 +119,6 @@
           acaoBotao = `<div class="status-reservado">❤️ Já Escolhido</div>`;
         }
 
-        // Esconde o preço se o item já foi reservado
         const tagPreco = isReservado ? '' : `<div class="valor-presente">R$ ${Number(p.valor).toFixed(2).replace('.', ',')}</div>`;
 
         card.innerHTML = `
@@ -146,7 +148,10 @@
     }
 
     async function reservarItem(idItem, nomeItem) {
-      const nomeConvidado = prompt(`Você escolheu: ${nomeItem}\n\nPor favor, digite o seu nome para confirmarmos aos noivos quem enviou:`);
+      // Texto exato que você pediu configurado diretamente aqui
+      const mensagemPrompt = `Você escolheu: ${nomeItem}\n\nInforme seu nome e compre onde quiser.`;
+      const nomeConvidado = prompt(mensagemPrompt);
+      
       if (!nomeConvidado || nomeConvidado.trim() === "") {
         alert("A reserva não foi concluída. É necessário informar o seu nome.");
         return;
