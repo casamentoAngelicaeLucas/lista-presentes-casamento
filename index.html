@@ -1,3 +1,8 @@
+Aqui está o código completo atualizado com essa nova configuração.
+
+O status de item escolhido agora exibe apenas o emoji de coração vermelho com a palavra Reservado (**"❤️ Reservado"**), mantendo toda a privacidade e a identidade visual original do casamento.
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
@@ -38,7 +43,7 @@
     .btn-link-loja:hover { background: #fbeee6; color: #a45334; border-color: #c26d4c; }
     .btn-reservar { background: #c26d4c; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-sizing: border-box; font-size: 15px; }
     .btn-reservar:hover { background: #a45334; }
-    .status-reservado { color: #5a6e85; font-weight: bold; padding: 12px; background: #e1ecf4; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 15px; }
+    .status-reservado { color: #8a7a70; font-weight: bold; padding: 12px; background: #f0e6df; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 15px; }
   </style>
 </head>
 <body>
@@ -104,7 +109,7 @@
         const card = document.createElement("div");
         card.className = "card-presente";
 
-        const isReservado = p.reservado === true || p.reservado === 'TRUE' || p.reservado === 'true' || !!p.reservado_por;
+        const isReservado = p.reservado === true || p.reservado === 'TRUE' || p.reservado_por;
         const dadosDescricao = separarTextoELink(p.descrição || p.descricao || '');
 
         let botaoLinkLoja = "";
@@ -112,9 +117,9 @@
           botaoLinkLoja = `<a href="${dadosDescricao.link}" target="_blank" class="btn-link-loja">🔗 Ver Sugestão de Loja</a>`;
         }
 
-        let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">Escolher este🎁</button>`;
+        let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">Escolho este 🎁</button>`;
         if (isReservado) {
-          acaoBotao = `<div class="status-reservado">💙 Reservado</div>`;
+          acaoBotao = `<div class="status-reservado">❤️ Reservado</div>`;
         }
 
         const tagPreco = isReservado ? '' : `<div class="valor-presente">R$ ${Number(p.valor).toFixed(2).replace('.', ',')}</div>`;
@@ -156,7 +161,7 @@
 
       const { error } = await _supabase
         .from('presentes')
-        .update({ reservado: true, reservado_por: nomeConvidado.trim() })
+        .update({ reservado: 'TRUE', reservado_por: nomeConvidado.trim() })
         .eq('id', idItem);
 
       if (error) {
@@ -172,3 +177,5 @@
   </script>
 </body>
 </html>
+
+```
