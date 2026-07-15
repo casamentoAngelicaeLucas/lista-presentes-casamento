@@ -3,172 +3,122 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lista de Presentes</title>
+  <title>Confirmação de Presença</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body { font-family: Arial, sans-serif; background: #fdfaf7; margin: 0; padding: 20px; color: #4a3b32; }
-    header { background: #c26d4c; color: white; padding: 40px 20px; text-align: center; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(194, 109, 76, 0.15); }
-    h1 { margin: 0; font-size: 28px; font-family: 'Georgia', serif; }
-    header p { margin: 15px 0 0 0; font-size: 16px; opacity: 0.95; line-height: 1.5; }
     
-    /* Seção horizontal para os itens já escolhidos */
-    .secao-escolhidos { max-width: 1200px; margin: 0 auto 40px auto; background: #fff; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); border: 1px solid #eacfbf; }
-    .titulo-escolhidos { font-size: 18px; font-family: 'Georgia', serif; color: #c26d4c; margin: 0 0 15px 0; text-align: left; font-weight: bold; }
+    /* Cabeçalho robusto com trava para não quebrar linha */
+    header { background: #c26d4c; color: white; padding: 35px 10px; text-align: center; border-radius: 10px; margin-bottom: 30px; box-shadow: 0 4px 10px rgba(194, 109, 76, 0.15); }
     
-    /* Configuração do Carrossel em Miniatura para Celular */
-    .carrossel-escolhidos { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 15px; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
-    .carrossel-escolhidos::-webkit-scrollbar { height: 6px; }
-    .carrossel-escolhidos::-webkit-scrollbar-thumb { background: #eacfbf; border-radius: 4px; }
+    /* O 'nowrap' garante tudo na mesma linha e a fonte menor evita que corte nas beiradas */
+    h1 { margin: 0; font-size: 22px; font-family: 'Georgia', serif; white-space: nowrap; letter-spacing: -0.5px; }
+    header p { margin: 8px 0 0 0; font-size: 16px; opacity: 0.9; font-style: italic; }
     
-    /* Tamanho miniatura dos cards no carrossel */
-    .carrossel-escolhidos .card-presente { min-width: 180px; max-width: 180px; padding: 12px; }
-    .carrossel-escolhidos .card-presente img { height: 100px; margin-bottom: 8px; }
-    .carrossel-escolhidos .nome-presente { font-size: 14px; margin: 5px 0; }
-    .carrossel-escolhidos .status-reservado { font-size: 12px; padding: 8px; }
-    .carrossel-escolhidos .btn-link-loja { font-size: 11px; padding: 5px; }
-
-    /* Grade vertical dos disponíveis */
-    .grid-presentes { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; max-width: 1200px; margin: 0 auto; }
-    .card-presente { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 4px 12px rgba(74, 59, 50, 0.05); text-align: center; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid #f3ebe4; }
-    .card-presente img { max-width: 100%; height: 180px; object-fit: contain; border-radius: 5px; margin-bottom: 15px; }
-    .nome-presente { font-size: 18px; font-weight: bold; color: #4a3b32; margin: 10px 0; }
-    .descricao-presente { font-size: 14px; color: #7a6a60; margin-bottom: 10px; line-height: 1.4; min-height: 45px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-    .valor-presente { font-size: 20px; color: #c26d4c; font-weight: bold; margin: 15px 0; }
-    .btn-link-loja { background: #fdfaf7; color: #c26d4c; border: 1px solid #eacfbf; padding: 8px; width: 100%; border-radius: 5px; font-weight: normal; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-block; margin-bottom: 10px; box-sizing: border-box; transition: all 0.3s; }
-    .btn-link-loja:hover { background: #fbeee6; color: #a45334; border-color: #c26d4c; }
-    .btn-reservar { background: #c26d4c; color: white; border: none; padding: 12px; width: 100%; border-radius: 5px; font-weight: bold; cursor: pointer; transition: background 0.3s; box-sizing: border-box; font-size: 15px; }
-    .btn-reservar:hover { background: #a45334; }
-    .status-reservado { color: #8a7a70; font-weight: bold; padding: 12px; background: #f0e6df; border-radius: 5px; margin-top: auto; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 15px; }
+    .container { max-width: 500px; margin: 40px auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 0 10px rgba(74,59,50,.1); box-sizing: border-box; border: 1px solid #f3ebe4; }
+    select, button { width: 100%; padding: 12px; margin: 15px 0; border: 1px solid #eacfbf; border-radius: 5px; font-size: 16px; box-sizing: border-box; background: #fdfaf7; color: #4a3b32; }
+    select { cursor: pointer; }
+    button { background: #c26d4c; color: white; border: none; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+    button:hover { background: #a45334; }
+    .radio-group { margin: 25px 0; text-align: left; display: flex; flex-direction: column; gap: 12px; padding-left: 10px; }
+    .radio-group label { cursor: pointer; font-size: 16px; display: flex; align-items: center; gap: 8px; color: #4a3b32; }
+    .instrucao { font-size: 16px; color: #7a6a60; margin-bottom: 20px; text-align: center; line-height: 1.5; }
+    .aviso-organizacao { font-size: 14px; color: #a45334; font-style: italic; text-align: center; margin-top: 5px; margin-bottom: 25px; line-height: 1.4; }
   </style>
 </head>
 <body>
 
   <header>
-    <h1>Lista de Presentes dos Noivos</h1>
-    <p><strong>Escolha o seu presente e compre onde preferir!</strong></p>
-    <p>Deixamos apenas uma sugestão de loja para te ajudar.</p>
-    <p>Selecione o presente para ficar indisponível para os outros convidados, assim a escolha será exclusiva sua.</p>
+    <h1>Confirmação de Presença</h1>
+    <p>Angélica & Lucas</p>
   </header>
 
-  <!-- Seção Horizontal para os presentes já escolhidos -->
-  <div class="secao-escolhidos" id="secaoEscolhidos" style="display: none;">
-    <div class="titulo-escolhidos">✨ Presentes Já Escolhidos</div>
-    <div class="carrossel-escolhidos" id="listaEscolhidos">
-    </div>
-  </div>
+  <div class="container">
+    <!-- 1. Instrução -->
+    <p class="instrucao">Ficamos muito felizes em compartilhar este momento com você!<br>Por favor, selecione seu nome na lista abaixo para confirmar:</p>
+    
+    <!-- 2. Seleção do Nome -->
+    <select id="selectConvidados">
+      <option value="">Carregando lista de convidados...</option>
+    </select>
 
-  <!-- Grade vertical dos disponíveis -->
-  <div class="grid-presentes" id="listaProdutos">
+    <!-- 3. Nota de Organização embaixo do nome -->
+    <p class="aviso-organizacao">*Nota: Após confirmar, seu nome sairá desta lista automaticamente para fins de organização dos noivos.*</p>
+
+    <!-- 4. Opções de presença -->
+    <div class="radio-group">
+      <label><input type="radio" name="presenca" value="Sim! Estarei lá com vocês ❤️" checked> Sim! Estarei lá com vocês ❤️</label>
+      <label><input type="radio" name="presenca" value="Não poderei ir"> Não poderei ir, mas desejo toda a felicidade do mundo ✨</label>
+    </div>
+
+    <!-- 5. Enviar Resposta -->
+    <button onclick="enviarResposta()">Enviar Resposta</button>
   </div>
 
   <script>
     const SUPABASE_URL = "https://jncjiqyakzztfgzldshi.supabase.co";
     const SUPABASE_KEY = "sb_publishable_eoGZmq-_cRw0DFr2UY-dig_ZoR4tUnB"; 
+
     const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
       global: { headers: { apikey: SUPABASE_KEY, Authorization: `Bearer ${SUPABASE_KEY}` } }
     });
 
-    function separarTextoELink(textoCompleto) {
-      if (!textoCompleto) return { texto: "", link: "" };
-      const regexLink = /(https?:\/\/[^\s]+)/g;
-      const linksEncontrados = textoCompleto.match(regexLink);
-      if (linksEncontrados && linksEncontrados.length > 0) {
-        const linkExtraido = linksEncontrados[0];
-        const textoLimpo = textoCompleto.replace(linkExtraido, "").trim();
-        return { texto: textoLimpo, link: linkExtraido };
-      }
-      return { texto: textoCompleto, link: "" };
-    }
-
-    async function carregarPresentes() {
-      const cacheBuster = new Date().getTime();
-      const { data: produtos, error } = await _supabase
-        .from('presentes')
+    async function carregarListaPublica() {
+      const { data: lista, error } = await _supabase
+        .from('convidados')
         .select('*')
+        .or('respondido.eq.FALSE,respondido.is.null,respondido.eq.false')
         .order('nome', { ascending: true });
 
       if (error) {
-        console.error("Erro ao buscar presentes:", error);
+        console.error("Erro Supabase:", error);
+        document.getElementById("selectConvidados").innerHTML = '<option value="">Erro ao carregar lista</option>';
         return;
       }
 
-      const containerGeral = document.getElementById("listaProdutos");
-      const containerEscolhidos = document.getElementById("listaEscolhidos");
-      const divSecaoEscolhidos = document.getElementById("secaoEscolhidos");
-      
-      containerGeral.innerHTML = "";
-      containerEscolhidos.innerHTML = "";
-      let temEscolhido = false;
+      const select = document.getElementById("selectConvidados");
+      select.innerHTML = '<option value="">-- Clique aqui para escolher seu nome --</option>';
 
-      produtos.forEach(p => {
-        const card = document.createElement("div");
-        card.className = "card-presente";
-
-        const isReservado = p.reservado === true || p.reservado === 'TRUE' || p.reservado_por;
-        const dadosDescricao = separarTextoELink(p.descrição || p.descricao || '');
-
-        let botaoLinkLoja = "";
-        if (dadosDescricao.link) {
-          botaoLinkLoja = `<a href="${dadosDescricao.link}" target="_blank" class="btn-link-loja">🔗 Ver Sugestão de Loja</a>`;
-        }
-
-        let acaoBotao = `<button class="btn-reservar" onclick="reservarItem(${p.id}, '${p.nome}')">Escolho este 🎁</button>`;
-        if (isReservado) {
-          acaoBotao = `<div class="status-reservado">❤️ Reservado</div>`;
-        }
-
-        const tagPreco = isReservado ? '' : `<div class="valor-presente">R$ ${Number(p.valor).toFixed(2).replace('.', ',')}</div>`;
-
-        card.innerHTML = `
-          <div>
-            <img src="${p.imagem || 'https://via.placeholder.com/150'}" alt="${p.nome}">
-            <div class="nome-presente">${p.nome}</div>
-            ${dadosDescricao.texto ? `<div class="descricao-presente">${dadosDescricao.texto}</div>` : ''}
-            ${botaoLinkLoja}
-            ${tagPreco}
-          </div>
-          ${acaoBotao}
-        `;
-
-        if (isReservado) {
-          containerEscolhidos.appendChild(card);
-          temEscolhido = true;
-        } else {
-          containerGeral.appendChild(card);
-        }
-      });
-
-      if (temEscolhido) {
-        divSecaoEscolhidos.style.display = "block";
-      } else {
-        divSecaoEscolhidos.style.display = "none";
+      if (!lista || lista.length === 0) {
+        select.innerHTML = '<option value="">Todos os convidados já responderam!</option>';
+        return;
       }
+
+      lista.forEach(convidado => {
+        const option = document.createElement("option");
+        option.value = convidado.id;
+        option.textContent = convidado.nome;
+        select.appendChild(option);
+      });
     }
 
-    async function reservarItem(idItem, nomeItem) {
-      const mensagemPrompt = `Você escolheu: ${nomeItem}\n\nInforme seu nome e compre onde preferir.`;
-      const nomeConvidado = prompt(mensagemPrompt);
-      
-      if (!nomeConvidado || nomeConvidado.trim() === "") {
-        alert("A reserva não foi concluída. É necessário informar o seu nome.");
+    async function enviarResposta() {
+      const idConvidado = document.getElementById("selectConvidados").value;
+      const valorPresenca = document.querySelector('input[name="presenca"]:checked').value;
+
+      if (!idConvidado) {
+        alert("Por favor, selecione o seu nome na lista antes de enviar.");
         return;
       }
 
       const { error } = await _supabase
-        .from('presentes')
-        .update({ reservado: 'TRUE', reservado_por: nomeConvidado.trim() })
-        .eq('id', idItem);
+        .from('convidados')
+        .update({ 
+          resposta: valorPresenca,
+          respondido: 'TRUE'
+        })
+        .eq('id', idConvidado);
 
       if (error) {
-        alert("Houve um erro ao reservar o presente. Tente novamente.");
+        alert("Houve um erro ao salvar sua resposta. Tente novamente.");
         console.error(error);
       } else {
-        alert("Presente escolhido com sucesso! Muito obrigado pelo carinho. ❤️");
-        carregarPresentes();
+        alert("Sua resposta foi enviada com carinho! Muito obrigado.");
+        carregarListaPublica();
       }
     }
 
-    carregarPresentes();
+    carregarListaPublica();
   </script>
 </body>
 </html>
